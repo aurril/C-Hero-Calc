@@ -254,6 +254,7 @@ std::map<std::string, int> stringToEnum = {
     {"LEECH", LEECH},
     {"EVOLVE", EVOLVE},
     {"COUNTER_MAX_HP", COUNTER_MAX_HP},
+    {"EXECUTE", EXECUTE},
 
     {"EARTH", EARTH},
     {"AIR", AIR},
@@ -607,6 +608,11 @@ void initBaseHeroes() {
 
     baseHeroes.push_back(Monster( 340, 64, "guy",               FIRE,  ASCENDED,  {COUNTER_MAX_HP, FIRE, FIRE, 1}));
     baseHeroes.push_back(Monster( 126,114, "adefile",           FIRE,  ASCENDED,  {EXPLODE,       ALL, FIRE, 150}));
+
+    baseHeroes.push_back(Monster(186, 62, "raiderrose",         EARTH, ASCENDED,  {EXECUTE,       EARTH, EARTH, 0.6}));
+    baseHeroes.push_back(Monster( 96, 30, "buccanerbeatrice",   WATER, LEGENDARY, {EXECUTE,       WATER, WATER, 0.3}));
+    baseHeroes.push_back(Monster(100, 32, "corsaircharles",     AIR,   LEGENDARY, {EXECUTE,       AIR, AIR, 0.35}));
+    baseHeroes.push_back(Monster(105, 34, "maraudermagnus",     FIRE,  LEGENDARY, {EXECUTE,       FIRE, FIRE, 0.4}));
 }
 
 void initIndices() {
