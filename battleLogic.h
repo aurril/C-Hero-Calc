@@ -355,10 +355,10 @@ inline void ArmyCondition::resolveDamage(TurnData & opposing) {
       counter_eligible = 0;
       // std::cout << "LUX DID NOT HIT FRONTLINER" << std::endl;
     }
-	
-	// Set counter target after applying damage
-	turnData.counter_target = tempArmy.findMaxHP();
-	
+
+    if(opposing.guyActive)
+        opposing.counter_target = findMaxHP();
+
     // Add opposing.counter_target to handle fawkes not targetting the frontliner
     if (opposing.counter && counter_eligible) {
       // std::cout << "COUNTER " << static_cast<int64_t>(ceil(turnData.baseDamage * opposing.counter)) << " damage " << " to " << frontliner + opposing.counter_target << std::endl;
