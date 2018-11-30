@@ -249,7 +249,6 @@ inline void ArmyCondition::getDamage(const int turncounter, const ArmyCondition 
                         break;
         case COUNTER_MAX_HP: turnData.counter = skillAmounts[monstersLost];
                         tempArmy = opposingCondition;
-                        turnData.counter_target = tempArmy.findMaxHP();
                         turnData.guyActive = true;
                         break;
         case EXECUTE:   turnData.execute = skillAmounts[monstersLost];
@@ -352,7 +351,10 @@ inline void ArmyCondition::resolveDamage(TurnData & opposing) {
       counter_eligible = 0;
       // std::cout << "LUX DID NOT HIT FRONTLINER" << std::endl;
     }
-
+	
+	// Set counter target after applying damage
+	turnData.counter_target = tempArmy.findMaxHP();
+	
     // Add opposing.counter_target to handle fawkes not targetting the frontliner
     if (opposing.counter && counter_eligible && (worldboss || remainingHealths[frontliner] > 0 || opposing.guyActive)) {
       // std::cout << "COUNTER " << static_cast<int64_t>(ceil(turnData.baseDamage * opposing.counter)) << " damage " << " to " << frontliner + opposing.counter_target << std::endl;
