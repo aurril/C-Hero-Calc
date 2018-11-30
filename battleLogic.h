@@ -353,7 +353,7 @@ inline void ArmyCondition::resolveDamage(TurnData & opposing) {
     }
 	
 	// Set counter target after applying damage
-	turnData.counter_target = tempArmy.findMaxHP();
+	turnData.counter_target = findMaxHP();
 	
     // Add opposing.counter_target to handle fawkes not targetting the frontliner
     if (opposing.counter && counter_eligible && (worldboss || remainingHealths[frontliner] > 0 || opposing.guyActive)) {
