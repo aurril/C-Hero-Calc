@@ -322,6 +322,7 @@ inline void ArmyCondition::getDamage(const int turncounter, const ArmyCondition 
 // Add damage to the opposing side and check for deaths
 inline void ArmyCondition::resolveDamage(TurnData & opposing) {
     int frontliner = monstersLost; // save original frontliner
+    int counter_target_after_death = frontliner;//Variable that accounts for reflect hitting the next unit if the first one dies.
 
     // Apply normal attack damage to the frontliner
     // If direct_target is non-zero that means Lux is hitting something not the front liner
@@ -364,7 +365,16 @@ inline void ArmyCondition::resolveDamage(TurnData & opposing) {
       // So, counter_target has to skip over dead units
       if(opposing.counter_target <= 0){
         // std::cout << "COUNTER " << static_cast<int64_t>(ceil(turnData.baseDamage * opposing.counter)) << " damage " << " to " << frontliner << std::endl;
-        remainingHealths[frontliner] -= static_cast<int64_t>(ceil(turnData.baseDamage * opposing.counter));
+        if(remainingHealths[frontliner] <= 0){
+            //Checking if the unit died after the initial attack, which redirects reflect to the next target
+            for(int i = frontliner + 1; i < ARMY_MAX_SIZE; i++) {
+                if(remainingHealths[i] > 0) {
+                    counter_target_after_death = i;
+                    break;
+                }
+            }
+        }
+        remainingHealths[counter_target_after_death] -= static_cast<int64_t>(ceil(turnData.baseDamage * opposing.counter));
       } else {
         // Find the (counter_target)th alive monster in remainingHealths
         int actual_target = opposing.counter_target;
