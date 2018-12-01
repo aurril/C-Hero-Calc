@@ -188,7 +188,6 @@ inline void ArmyCondition::getDamage(const int turncounter, const ArmyCondition 
     const double opposingAbsorbMult = opposingCondition.turnData.absorbMult;
     const bool opposingImmunityDamage = opposingCondition.turnData.immunity5K;
     const double opposingDamage = opposingCondition.lineup[opposingCondition.monstersLost]->damage;
-    ArmyCondition tempArmy;
 
     // Handle Monsters with skills that only activate on attack.
     turnData.trampleTriggered = false;
@@ -202,6 +201,7 @@ inline void ArmyCondition::getDamage(const int turncounter, const ArmyCondition 
     turnData.counter_target = 0;
     turnData.leech = 0;
     turnData.execute = 0;
+    turnData.guyActive = false;
 
     double friendsDamage = 0;
 
@@ -248,7 +248,6 @@ inline void ArmyCondition::getDamage(const int turncounter, const ArmyCondition 
                         evolveTotal += opposingDamage * skillAmounts[monstersLost];
                         break;
         case COUNTER_MAX_HP: turnData.counter = skillAmounts[monstersLost];
-                        tempArmy = opposingCondition;
                         turnData.guyActive = true;
                         break;
         case EXECUTE:   turnData.execute = skillAmounts[monstersLost];
