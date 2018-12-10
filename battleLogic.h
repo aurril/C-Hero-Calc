@@ -188,7 +188,6 @@ inline void ArmyCondition::getDamage(const int turncounter, const ArmyCondition 
     const double opposingAbsorbMult = opposingCondition.turnData.absorbMult;
     const bool opposingImmunityDamage = opposingCondition.turnData.immunity5K;
     const double opposingDamage = opposingCondition.lineup[opposingCondition.monstersLost]->damage;
-    ArmyCondition tempArmy;
 
     // Handle Monsters with skills that only activate on attack.
     turnData.trampleTriggered = false;
@@ -202,6 +201,7 @@ inline void ArmyCondition::getDamage(const int turncounter, const ArmyCondition 
     turnData.counter_target = 0;
     turnData.leech = 0;
     turnData.execute = 0;
+    turnData.guyActive = false;
 
     double friendsDamage = 0;
 
@@ -248,7 +248,6 @@ inline void ArmyCondition::getDamage(const int turncounter, const ArmyCondition 
                         evolveTotal += opposingDamage * skillAmounts[monstersLost];
                         break;
         case COUNTER_MAX_HP: turnData.counter = skillAmounts[monstersLost];
-                        tempArmy = opposingCondition;
                         turnData.guyActive = true;
                         break;
         case EXECUTE:   turnData.execute = skillAmounts[monstersLost];
@@ -290,7 +289,10 @@ inline void ArmyCondition::getDamage(const int turncounter, const ArmyCondition 
     //leech healing based on damage dealt
     if (turnData.leech != 0)
         turnData.leech *= turnData.valkyrieDamage;
-
+    //Check execute before resolve damage for reflect ability, neil absorbs damage before the execute, according to replays.
+    if (turnData.execute && !worldboss && ((double)(opposingCondition.remainingHealths[opposingCondition.monstersLost] - round(turnData.valkyrieDamage)) / opposingCondition.maxHealths[opposingCondition.monstersLost] <= turnData.execute)) {
+        turnData.valkyrieDamage = opposingCondition.remainingHealths[opposingCondition.monstersLost] + 1;
+    }
     // for compiling heavyDamage version
     if (turnData.valkyrieDamage >= std::numeric_limits<int>::max())
         turnData.baseDamage = static_cast<DamageType>(ceil(turnData.valkyrieDamage));
@@ -318,6 +320,7 @@ inline void ArmyCondition::getDamage(const int turncounter, const ArmyCondition 
 // Add damage to the opposing side and check for deaths
 inline void ArmyCondition::resolveDamage(TurnData & opposing) {
     int frontliner = monstersLost; // save original frontliner
+    int counter_target_after_death = frontliner;//Variable that accounts for reflect hitting the next unit if the first one dies.
 
     // Apply normal attack damage to the frontliner
     // If direct_target is non-zero that means Lux is hitting something not the front liner
@@ -351,38 +354,30 @@ inline void ArmyCondition::resolveDamage(TurnData & opposing) {
       counter_eligible = 0;
       // std::cout << "LUX DID NOT HIT FRONTLINER" << std::endl;
     }
-	
-	// Set counter target after applying damage
-	turnData.counter_target = findMaxHP();
-	
+
+    if(opposing.guyActive)
+        opposing.counter_target = findMaxHP();
+
     // Add opposing.counter_target to handle fawkes not targetting the frontliner
-    if (opposing.counter && counter_eligible && (worldboss || remainingHealths[frontliner] > 0 || opposing.guyActive)) {
+    if (opposing.counter && counter_eligible) {
       // std::cout << "COUNTER " << static_cast<int64_t>(ceil(turnData.baseDamage * opposing.counter)) << " damage " << " to " << frontliner + opposing.counter_target << std::endl;
       // Game has been updated to remove units once dead but remainingHealths still has all units
       // So, if the counter target is not the frontliner, find the real one
       // So, counter_target has to skip over dead units
       if(opposing.counter_target <= 0){
         // std::cout << "COUNTER " << static_cast<int64_t>(ceil(turnData.baseDamage * opposing.counter)) << " damage " << " to " << frontliner << std::endl;
-        remainingHealths[frontliner] -= static_cast<int64_t>(ceil(turnData.baseDamage * opposing.counter));
-      } else {
-        // Find the (counter_target)th alive monster in remainingHealths
-        int actual_target = opposing.counter_target;
-        // std::cout << "Counter target is " << opposing.counter_target << std::endl;
-        int alive = 0;
-        for(int i = frontliner + 1; i < ARMY_MAX_SIZE; i++) {
-          // std::cout << "I is " << i << std::endl;
-          if(remainingHealths[i] > 0) {
-            alive++;
-            // std::cout << "Alive incremented to " << alive << std::endl;
-          }
-          if(alive >= opposing.counter_target) {
-            actual_target = i;
-            // std::cout << "Setting actual target to " << i << std::endl;
-            break;
-          }
+        if(remainingHealths[frontliner] <= 0){
+            //Checking if the unit died after the initial attack, which redirects reflect to the next target
+            for(int i = frontliner + 1; i < ARMY_MAX_SIZE; i++) {
+                if(remainingHealths[i] > 0) {
+                    counter_target_after_death = i;
+                    break;
+                }
+            }
         }
-        // std::cout << "COUNTER " << static_cast<int64_t>(ceil(turnData.baseDamage * opposing.counter)) << " damage " << " to " << actual_target << std::endl;
-        remainingHealths[actual_target] -= static_cast<int64_t>(ceil(turnData.baseDamage * opposing.counter));
+        remainingHealths[counter_target_after_death] -= static_cast<int64_t>(ceil(turnData.baseDamage * opposing.counter));
+      } else {
+        remainingHealths[monstersLost + opposing.counter_target] -= static_cast<int64_t>(ceil(turnData.baseDamage * opposing.counter));
       }
 
     }
@@ -390,10 +385,6 @@ inline void ArmyCondition::resolveDamage(TurnData & opposing) {
     if (opposing.trampleTriggered && armySize > frontliner + 1) {
         // std::cout << "TRAMPLE" << std::endl;
         remainingHealths[frontliner + 1] -= opposing.valkyrieDamage;
-    }
-
-    if (opposing.execute && !worldboss && (((double)remainingHealths[frontliner] / maxHealths[frontliner]) < opposing.execute)) {
-        remainingHealths[frontliner] = 0;
     }
 
     if (opposing.explodeDamage != 0 && remainingHealths[frontliner] <= 0 && !worldboss) {
