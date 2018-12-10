@@ -377,24 +377,7 @@ inline void ArmyCondition::resolveDamage(TurnData & opposing) {
         }
         remainingHealths[counter_target_after_death] -= static_cast<int64_t>(ceil(turnData.baseDamage * opposing.counter));
       } else {
-        // Find the (counter_target)th alive monster in remainingHealths
-        int actual_target = opposing.counter_target;
-        // std::cout << "Counter target is " << opposing.counter_target << std::endl;
-        int alive = 0;
-        for(int i = frontliner + 1; i < ARMY_MAX_SIZE; i++) {
-          // std::cout << "I is " << i << std::endl;
-          if(remainingHealths[i] > 0) {
-            alive++;
-            // std::cout << "Alive incremented to " << alive << std::endl;
-          }
-          if(alive >= opposing.counter_target) {
-            actual_target = i;
-            // std::cout << "Setting actual target to " << i << std::endl;
-            break;
-          }
-        }
-        // std::cout << "COUNTER " << static_cast<int64_t>(ceil(turnData.baseDamage * opposing.counter)) << " damage " << " to " << actual_target << std::endl;
-        remainingHealths[actual_target] -= static_cast<int64_t>(ceil(turnData.baseDamage * opposing.counter));
+        remainingHealths[monstersLost + opposing.counter_target] -= static_cast<int64_t>(ceil(turnData.baseDamage * opposing.counter));
       }
 
     }
