@@ -1,7 +1,7 @@
 CC = gcc
 CXX = g++
 RM = rm -f
-CPPFLAGS = -Wall -Ofast -std=c++11
+CPPFLAGS = -Wall -Ofast -std=c++11 -s -static -static-libstdc++ -static-libgcc -pthread
 
 SRCS = main.cpp cosmosData.cpp inputProcessing.cpp battleLogic.cpp base64.cpp
 OBJS = $(subst .cpp,.o,$(SRCS))
@@ -9,7 +9,7 @@ OBJS = $(subst .cpp,.o,$(SRCS))
 all: CosmosQuest
 
 CosmosQuest: $(OBJS)
-	$(CXX) $(LDFLAGS) -o CosmosQuest $(OBJS) $(LDLIBS)
+	$(CXX) $(LDFLAGS) -o CosmosQuest $(OBJS) $(LDLIBS) $(CPPFLAGS)
 
 main.o: main.cpp
 cosmosData.o: cosmosData.cpp
